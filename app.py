@@ -160,6 +160,26 @@ meta_cols[3].write(f"**Ended**\n\n{result.ended_at or '—'}")
 
 if result.status == "completed":
     st.success(result.message or "Completed.")
+    if result.mode == "demo":
+        st.warning(
+            "Demo mode: your **request interpretation** updates with each prompt. "
+            "The **MSE / ranking / forecast tables** are the same cached sample CoMoMo "
+            "outputs for every run (so the free site stays fast). "
+            "A full live R/HMD run would change those numbers."
+        )
+
+    if result.interpretation:
+        st.markdown("### What we understood from your request")
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Country", result.interpretation.get("country", "—"))
+        c2.metric("Sex", result.interpretation.get("sex", "—"))
+        c3.metric("Ages", result.interpretation.get("ages", "—"))
+        c4, c5, c6 = st.columns(3)
+        c4.metric("Fit period", result.interpretation.get("fit_period", "—"))
+        c5.metric("Test period", result.interpretation.get("test_period", "—"))
+        c6.metric("Forecast year", result.interpretation.get("forecast_target_year", "—"))
+        st.caption(f"Models: **{result.interpretation.get('models', '—')}**")
+
     st.markdown("### Answer")
     if result.plain_english_answer:
         st.markdown(result.plain_english_answer)
@@ -197,6 +217,8 @@ with tab_cfg:
         st.caption("No effective config.")
 
 with tab_mse:
+    if result.mode == "demo":
+        st.caption("Illustrative sample table (unchanged across demo runs).")
     df = result.tables.get("mse_by_horizon")
     if isinstance(df, pd.DataFrame) and not df.empty:
         st.dataframe(df, width="stretch")
@@ -204,15 +226,29 @@ with tab_mse:
         st.caption("No MSE-by-horizon table.")
 
 with tab_rank:
+    if result.mode == "demo":
+        st.caption("Illustrative sample ranking (unchanged across demo runs).")
     df = result.tables.get("mse_average_ranking")
     if not isinstance(df, pd.DataFrame) or df.empty:
         df = result.tables.get("mse_summary")
     if isinstance(df, pd.DataFrame) and not df.empty:
+        requested = {
+            str(m).upper()
+            for m in (result.user_request.get("models") or [])
+        }
+        if requested and "model" in df.columns:
+            highlight = df[df["model"].astype(str).str.upper().isin(requested)]
+            if not highlight.empty:
+                st.markdown("**Your named models in the sample ranking**")
+                st.dataframe(highlight, width="stretch")
+                st.markdown("**Full sample ranking**")
         st.dataframe(df, width="stretch")
     else:
         st.caption("No ranking table.")
 
 with tab_fc:
+    if result.mode == "demo":
+        st.caption("Illustrative sample forecast preview (unchanged across demo runs).")
     df = result.tables.get("forecast_rates_preview")
     if isinstance(df, pd.DataFrame) and not df.empty:
         st.dataframe(df, width="stretch")
@@ -221,6 +257,8 @@ with tab_fc:
         st.caption("No forecast preview.")
 
 with tab_w:
+    if result.mode == "demo":
+        st.caption("Illustrative sample weights (unchanged across demo runs).")
     df = result.tables.get("weights_table")
     if isinstance(df, pd.DataFrame) and not df.empty:
         st.dataframe(df, width="stretch")

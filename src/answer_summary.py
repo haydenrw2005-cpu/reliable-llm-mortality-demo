@@ -175,14 +175,18 @@ def llm_plain_english_answer(facts: str, query: str) -> str:
         "You are a mortality-forecasting assistant. Write a clear plain-English final answer "
         "for a non-technical reader. Use ONLY the verified facts provided. "
         "Do not invent numbers. Do not say data is missing if the facts already list ranks or MSE. "
-        "Start by restating what was analysed, then give the main finding (best method / MSE), "
-        "then any useful caveats from the facts. "
-        "2–4 short paragraphs. No JSON. No markdown headings. Bold the best model name once."
+        "Paragraph 1 MUST name the exact country, sex, ages, years, and models from THIS request "
+        "(so different inputs produce clearly different answers). "
+        "Paragraph 2: among models the user named, report their ranks/MSE from the facts; "
+        "then mention the overall best method in the sample ranking. "
+        "Paragraph 3: if facts say demo/cached sample, say clearly that the MSE numbers are an "
+        "illustrative sample and would change with a full live CoMoMo/HMD run. "
+        "2–4 short paragraphs. No JSON. No markdown headings. Bold one model name once."
     )
     user = (
         f"User question:\n{query}\n\n"
         f"Verified facts from the pipeline:\n{facts}\n\n"
-        "Write the final plain-English answer now."
+        "Write the final plain-English answer now. Make paragraph 1 specific to this request."
     )
     resp = requests.post(
         f"{base_url}/chat/completions",
@@ -207,6 +211,41 @@ def llm_plain_english_answer(facts: str, query: str) -> str:
     return str(data["choices"][0]["message"]["content"]).strip()
 
 
+def interpretation_snapshot(
+    user_request: Dict[str, Any], effective_config: Dict[str, Any]
+) -> Dict[str, str]:
+    """Compact fields for the UI so users see their input was understood."""
+    hmd = effective_config.get("hmd") or {}
+    ages = effective_config.get("ages") or user_request.get("ages") or {}
+    fit = effective_config.get("fit_period") or user_request.get("fit_period") or {}
+    test = user_request.get("test_period") or effective_config.get("rolling_origins") or {}
+    models = effective_config.get("models") or user_request.get("models") or []
+    target = effective_config.get("forecast_target_year") or user_request.get(
+        "forecast_target_year"
+    )
+    return {
+        "country": _country_label(str(hmd.get("country") or user_request.get("country") or "")),
+        "sex": str(hmd.get("sex") or user_request.get("gender") or "—"),
+        "ages": (
+            f"{ages.get('min')}–{ages.get('max')}"
+            if isinstance(ages, dict) and ages.get("min") is not None
+            else "—"
+        ),
+        "fit_period": (
+            f"{fit.get('start')}–{fit.get('end')}"
+            if isinstance(fit, dict) and fit.get("start") is not None
+            else "—"
+        ),
+        "test_period": (
+            f"{test.get('start')}–{test.get('end')}"
+            if isinstance(test, dict) and test.get("start") is not None
+            else "—"
+        ),
+        "models": ", ".join(str(m) for m in models) if models else "—",
+        "forecast_target_year": str(target) if target not in (None, "") else "none (MSE / backtest)",
+    }
+
+
 def build_plain_english_answer(
     *,
     query: str,
@@ -223,9 +262,10 @@ def build_plain_english_answer(
         tables=tables,
         mode=mode,
     )
-    if not use_llm:
+    # Demo mode: keep the deterministic facts as the answer so changing the prompt
+    # always changes the visible text (LLM polish can blur request-specific details).
+    if mode == "demo" or not use_llm:
         return facts
-    # Skip LLM polish if no key is configured.
     has_key = bool(
         os.environ.get("LLM_API_KEY", "").strip()
         or os.environ.get("GROQ_API_KEY", "").strip()

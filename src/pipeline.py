@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Literal, Optional
 
 import pandas as pd
 
-from .answer_summary import build_plain_english_answer
+from .answer_summary import build_plain_english_answer, interpretation_snapshot
 from .config_validate import build_effective_config
 from .demo_artifacts import load_sample_tables, sample_run_manifest
 from .llm_extract import extract_user_request
@@ -39,6 +39,7 @@ class RunResult:
     metadata: Dict[str, Any] = field(default_factory=dict)
     logs: List[str] = field(default_factory=list)
     plain_english_answer: str = ""
+    interpretation: Dict[str, str] = field(default_factory=dict)
 
 
 def _now() -> str:
@@ -229,6 +230,7 @@ def execute_run(
             }
             result.message = "Full R pipeline completed successfully."
 
+        result.interpretation = interpretation_snapshot(user_req, effective)
         logs.append("Writing plain-English final answer…")
         result.plain_english_answer = build_plain_english_answer(
             query=query,
