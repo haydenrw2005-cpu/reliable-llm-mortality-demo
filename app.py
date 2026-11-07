@@ -116,9 +116,9 @@ st.text_area("Natural-language request", height=140, key="query_text")
 
 col_run, col_ex = st.columns([1, 1])
 with col_run:
-    run_clicked = st.button("Run", type="primary", use_container_width=True)
+    run_clicked = st.button("Run", type="primary", width="stretch")
 with col_ex:
-    if st.button("Load JSON example", use_container_width=True):
+    if st.button("Load JSON example", width="stretch"):
         example = {
             "status": "ready",
             "country": "USA",
@@ -193,21 +193,23 @@ with tab_cfg:
 with tab_mse:
     df = result.tables.get("mse_by_horizon")
     if isinstance(df, pd.DataFrame) and not df.empty:
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, width="stretch")
     else:
         st.caption("No MSE-by-horizon table.")
 
 with tab_rank:
-    df = result.tables.get("mse_average_ranking") or result.tables.get("mse_summary")
+    df = result.tables.get("mse_average_ranking")
+    if not isinstance(df, pd.DataFrame) or df.empty:
+        df = result.tables.get("mse_summary")
     if isinstance(df, pd.DataFrame) and not df.empty:
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, width="stretch")
     else:
         st.caption("No ranking table.")
 
 with tab_fc:
     df = result.tables.get("forecast_rates_preview")
     if isinstance(df, pd.DataFrame) and not df.empty:
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, width="stretch")
         st.caption("Preview rows only (demo/full UI cap).")
     else:
         st.caption("No forecast preview.")
@@ -215,7 +217,7 @@ with tab_fc:
 with tab_w:
     df = result.tables.get("weights_table")
     if isinstance(df, pd.DataFrame) and not df.empty:
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, width="stretch")
     else:
         st.caption("No weights table in this run.")
 
