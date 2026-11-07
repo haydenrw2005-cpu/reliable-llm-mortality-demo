@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    environment:
+      PIPELINE_MODE: full
+      R_PIPELINE_SCRIPT: /app/r/rolling_window_check_mse_comomo_api_fixed_forecast_final.R
+    volumes:
+      # Persist run outputs and state across container restarts
+      - ./output:/app/output
+      - ./state:/app/state
+      - ./r/.Rlib:/app/r/.Rlib
+    restart: unless-stopped

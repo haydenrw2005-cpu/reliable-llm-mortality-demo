@@ -1,0 +1,12 @@
+.env
+.venv
+venv
+__pycache__
+**/__pycache__
+.git
+.state
+output
+r/.Rlib
+*.zip
+.streamlit/secrets.toml
+scripts/__pycache__

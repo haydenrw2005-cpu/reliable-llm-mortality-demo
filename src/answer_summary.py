@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional  # noqa: F401 — Optional used by sanity_check arg
 
 import pandas as pd
 import requests
@@ -163,6 +163,10 @@ def build_factual_summary(
             "but the numerical tables are cached sample CoMoMo outputs so the site stays fast. "
             "Treat the numbers as an illustrative worked example, not a fresh HMD download."
         )
+    else:
+        lines.append(
+            "Numerical results above come from a live CoMoMo/StMoMo R run for this request."
+        )
 
     lines.append(f'Original request: “{query.strip()}”')
     return "\n\n".join(lines)
@@ -254,6 +258,7 @@ def build_plain_english_answer(
     tables: Dict[str, pd.DataFrame],
     mode: str,
     use_llm: bool = True,
+    sanity_check: Optional[Dict[str, Any]] = None,
 ) -> str:
     facts = build_factual_summary(
         query=query,
@@ -262,9 +267,22 @@ def build_plain_english_answer(
         tables=tables,
         mode=mode,
     )
-    # Demo mode: keep the deterministic facts as the answer so changing the prompt
-    # always changes the visible text (LLM polish can blur request-specific details).
+    if sanity_check:
+        if sanity_check.get("ok"):
+            facts += "\n\nSanity check: passed."
+        else:
+            facts += "\n\nSanity check: FAILED. Issues: " + "; ".join(
+                str(x) for x in (sanity_check.get("issues") or ["unknown"])
+            )
+        points = sanity_check.get("summary_points") or []
+        if points:
+            facts += "\n\nKey points: " + "; ".join(str(p) for p in points)
+
+    # Demo mode: keep deterministic facts so changing the prompt always changes the text.
     if mode == "demo" or not use_llm:
+        return facts
+    # If sanity failed, do not LLM-polish into a confident success narrative.
+    if sanity_check is not None and not sanity_check.get("ok"):
         return facts
     has_key = bool(
         os.environ.get("LLM_API_KEY", "").strip()
