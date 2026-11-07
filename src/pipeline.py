@@ -240,6 +240,14 @@ def execute_run(
         )
         logs.append("Plain-English answer ready.")
         result.status = "completed"
+    except json.JSONDecodeError as ex:
+        result.status = "failed"
+        result.error = "JSONDecodeError"
+        result.message = (
+            "The LLM returned invalid JSON while reading your request. "
+            f"Please click Run again. Details: {ex}"
+        )
+        logs.append(f"ERROR: {ex}")
     except Exception as ex:  # noqa: BLE001
         result.status = "failed"
         result.error = type(ex).__name__
