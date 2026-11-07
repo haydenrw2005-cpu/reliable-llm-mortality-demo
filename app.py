@@ -160,6 +160,11 @@ meta_cols[3].write(f"**Ended**\n\n{result.ended_at or '—'}")
 
 if result.status == "completed":
     st.success(result.message or "Completed.")
+    st.markdown("### Answer")
+    if result.plain_english_answer:
+        st.markdown(result.plain_english_answer)
+    else:
+        st.caption("No plain-English answer was generated for this run.")
 else:
     st.error(f"{result.error}: {result.message}")
 
@@ -167,6 +172,7 @@ with st.expander("Execution log", expanded=result.status != "completed"):
     for line in result.logs:
         st.code(line, language=None)
 
+st.markdown("### Details")
 tab_req, tab_cfg, tab_mse, tab_rank, tab_fc, tab_w = st.tabs(
     [
         "User request",
