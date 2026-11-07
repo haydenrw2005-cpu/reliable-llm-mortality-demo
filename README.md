@@ -64,7 +64,7 @@ Any OpenAI-compatible chat API works:
 ```env
 LLM_API_KEY=...
 LLM_BASE_URL=https://api.groq.com/openai/v1
-LLM_MODEL=llama-3.3-70b-versatile
+LLM_MODEL=openai/gpt-oss-20b
 ```
 
 Groq’s free tier is the intended default for class demos.

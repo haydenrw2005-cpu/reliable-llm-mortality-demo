@@ -14,7 +14,7 @@ from .paths import EXTRACTOR_SYSTEM
 
 # Defaults tuned for free Groq tier; override with env vars.
 DEFAULT_BASE_URL = "https://api.groq.com/openai/v1"
-DEFAULT_MODEL = "llama-3.3-70b-versatile"
+DEFAULT_MODEL = "openai/gpt-oss-20b"
 
 
 def parse_first_json_object(text: str) -> Dict[str, Any]:
