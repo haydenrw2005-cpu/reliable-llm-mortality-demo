@@ -1,0 +1,28 @@
+{
+  "_comment": "Customisable run template: UK male defaults but user request is applied.",
+  "pipeline_id": "rolling_window_check_mse_comomo_api_customised",
+  "lock_to_baseline": false,
+  "hmd": {
+    "country": "GBRTENW",
+    "sex": "male",
+    "username_env": "HMD_USERNAME",
+    "password_env": "HMD_PASSWORD"
+  },
+  "ages": {
+    "min": 50,
+    "max": 89
+  },
+  "fit_period": {
+    "start": 1960,
+    "end": 1990
+  },
+  "forecast_max_year": 2016,
+  "rolling_origins": {
+    "start": 1990,
+    "end": 2015
+  },
+  "mse_horizon_max": 15,
+  "mcs_seed": 100,
+  "models": ["LC", "RH", "APC", "CBD", "M7", "PLAT"],
+  "stack_metalearners": ["nnls", "linear", "lasso", "ridge", "elastic"]
+}

@@ -1,0 +1,25 @@
+{
+  "_comment": "Canonical params aligned with rolling_window_check_mse.R (phase 1: R script still hard-codes; this file is the contract for LLM + validator).",
+  "pipeline_id": "rolling_window_check_mse",
+  "lock_to_baseline": true,
+  "hmd": {
+    "country": "SWE",
+    "sex": "male",
+    "username_env": "HMD_USERNAME",
+    "password_env": "HMD_PASSWORD"
+  },
+  "ages": { "min": 50, "max": 89 },
+  "fit_period": { "start": 1960, "end": 1990 },
+  "forecast_max_year": 2016,
+  "rolling_origins": { "start": 1990, "end": 2015 },
+  "mse_horizon_max": 15,
+  "mcs_seed": 100,
+  "models": ["LC", "RH", "APC", "CBD", "M7", "PLAT"],
+  "stack_metalearners": ["nnls", "linear", "lasso", "ridge", "elastic"],
+  "r_entry_script": "rolling_window_check_mse.R",
+  "output_files": [
+    "output/baseline/mse_by_horizon_output.csv",
+    "output/baseline/mse_average_ranking_output.csv",
+    "output/baseline/forecast_rates_with_mse_output.csv"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "status": "ready",
+  "country": "USA",
+  "gender": "female",
+  "ages": { "min": 60, "max": 90 },
+  "fit_period": { "start": 1970, "end": 2000 },
+  "test_period": { "start": 2001, "end": 2010 },
+  "models": ["LC", "APC"],
+  "outcomes": ["mse", "forecast_rates"]
+}
